@@ -3,6 +3,12 @@ package model;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import controller.Spider;
 
 public class Zhihu {
@@ -21,31 +27,29 @@ public class Zhihu {
 
 		// 判断url是否合法
 		if (getRealUrl(url)) {
-			System.out.println("正在抓取" + zhihuUrl);
+			//System.out.println("正在抓取" + zhihuUrl);
 			// 根据url获取该问答的细节
 			String content = Spider.SendGet(zhihuUrl);
-			Pattern pattern;
-			Matcher matcher;
-			// 匹配标题
-			pattern = Pattern.compile("zh-question-title.+?<h2.+?>(.+?)</h2>");
-			matcher = pattern.matcher(content);
-			if (matcher.find()) {
-				question = matcher.group(1);
-			}
-			// 匹配描述
-			pattern = Pattern
-					.compile("zh-question-detail.+?<div.+?>(.*?)</div>");
-			matcher = pattern.matcher(content);
-			if (matcher.find()) {
-				questionDescription = matcher.group(1);
-			}
-			// 匹配答案
-			pattern = Pattern.compile("/answer/content.+?<div.+?>(.*?)</div>");
-			matcher = pattern.matcher(content);
-			boolean isFind = matcher.find();
-			while (isFind) {
-				answers.add(matcher.group(1));
-				isFind = matcher.find();
+			if(content != null){
+				Document doc = Jsoup.parse(content);
+				// 匹配标题
+				question = doc.title();
+				
+				// 匹配描述
+				Element despElement = doc.getElementById("zh-question-detail");
+				if(despElement != null){
+					questionDescription = despElement.text();
+				}
+				// 匹配答案
+				Elements ansItems = doc.getElementsByClass("zm-item-answer");
+				for(Element ansItem:ansItems){
+					Element textElement = ansItem.getElementsByClass("zm-item-rich-text").first();
+					if(despElement != null){
+						answers.add(textElement.text());
+					}
+				}
+			}else{
+				System.out.println("content is null");
 			}
 		}
 	}
