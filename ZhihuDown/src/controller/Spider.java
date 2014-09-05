@@ -62,12 +62,12 @@ public class Spider {
 		// 预定义一个ArrayList来存储结果
 		ArrayList<Zhihu> results = new ArrayList<Zhihu>();
 		Document doc = Jsoup.parse(content);
-		Elements items =  doc.getElementsByClass("zm-item");
+		Elements items =  doc.getElementsByClass("zm-item");          //推荐内容元素
 		for(Element item:items){
-			Element h2TagEle = item.getElementsByTag("h2").first();
-			Element aTagEl = h2TagEle.getElementsByTag("a").first();
-			String href = aTagEl.attr("href");
-			if(href.contains("question")){
+			Element h2TagEle = item.getElementsByTag("h2").first();   //每条推荐内容标题元素
+			Element aTagEl = h2TagEle.getElementsByTag("a").first();  //标题元素中的超链接
+			String href = aTagEl.attr("href");                        //获取超链接网址
+			if(href.contains("question")){                            //个别超链接网址不规范
 				results.add(new Zhihu(href));
 			}
 		}
