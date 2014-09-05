@@ -1,88 +1,76 @@
 package controller;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import model.FileReaderWriter;
 import model.Zhihu;
 
 public class Spider {
 	public static void main(String[] args) {
-		// ¶¨Òå¼´½«·ÃÎÊµÄÁ´½Ó
+
 		String url = "http://www.zhihu.com/explore/recommendations";
-		// ·ÃÎÊÁ´½Ó²¢»ñÈ¡Ò³ÃæÄÚÈİ
+		// è·å–çŸ¥ä¹æ¨èé¦–é¡µ
 		String content = Spider.SendGet(url);
-		// »ñÈ¡±à¼­ÍÆ¼ö
+
+		// è·å–æ¨èå†…å®¹è¯¦ç»†å†…å®¹
 		ArrayList<Zhihu> myZhihu = Spider.GetRecommendations(content);
-		// ´òÓ¡½á¹û
-		// System.out.println(myZhihu);
-		// Ğ´Èë±¾µØ
+
+		// å†™å…¥æ–‡æ¡£
 		for (Zhihu zhihu : myZhihu) {
 			FileReaderWriter.writeIntoFile(zhihu.writeString(),
-					"D:/Öªºõ_±à¼­ÍÆ¼ö.txt", true);
+					"D:/çŸ¥ä¹_ç¼–è¾‘æ¨è", true);
 		}
 	}
-
+	
+	//è·å–æŒ‡å®šUrlé¡µé¢å†…å®¹
+	//é‡‡ç”¨http-clientå’Œhttp-core 4.3 jaråŒ…
 	public static String SendGet(String url) {
-		// ¶¨ÒåÒ»¸ö×Ö·û´®ÓÃÀ´´æ´¢ÍøÒ³ÄÚÈİ
-		String result = "";
-		// ¶¨ÒåÒ»¸ö»º³å×Ö·ûÊäÈëÁ÷
-		BufferedReader in = null;
-		try {
-			// ½«string×ª³Éurl¶ÔÏó
-			URL realUrl = new URL(url);
-			// ³õÊ¼»¯Ò»¸öÁ´½Óµ½ÄÇ¸öurlµÄÁ¬½Ó
-			URLConnection connection = realUrl.openConnection();
-			// ¿ªÊ¼Êµ¼ÊµÄÁ¬½Ó
-			connection.connect();
-			// ³õÊ¼»¯ BufferedReaderÊäÈëÁ÷À´¶ÁÈ¡URLµÄÏìÓ¦
-			in = new BufferedReader(new InputStreamReader(
-					connection.getInputStream(), "UTF-8"));
-			// ÓÃÀ´ÁÙÊ±´æ´¢×¥È¡µ½µÄÃ¿Ò»ĞĞµÄÊı¾İ
-			String line;
-			while ((line = in.readLine()) != null) {
-				// ±éÀú×¥È¡µ½µÄÃ¿Ò»ĞĞ²¢½«Æä´æ´¢µ½resultÀïÃæ
-				result += line;
-			}
-		} catch (Exception e) {
-			System.out.println("·¢ËÍGETÇëÇó³öÏÖÒì³££¡" + e);
+
+		CloseableHttpClient client = HttpClients.createDefault();
+		try{
+			HttpGet request = new HttpGet(url);
+			CloseableHttpResponse resp = client.execute(request);
+			
+			String result = EntityUtils.toString(resp.getEntity());
+			
+			return result;
+		}catch(Exception e){
 			e.printStackTrace();
-		}
-		// Ê¹ÓÃfinallyÀ´¹Ø±ÕÊäÈëÁ÷
-		finally {
-			try {
-				if (in != null) {
-					in.close();
-				}
-			} catch (Exception e2) {
-				e2.printStackTrace();
+		}finally{
+			try{
+				client.close();
+			}catch(Exception e){
+				e.printStackTrace();
 			}
+			
 		}
-		return result;
+		
+		return null;
 	}
 
-	// »ñÈ¡ËùÓĞµÄ±à¼­ÍÆ¼öµÄÖªºõÄÚÈİ
+	// è·å–æ¨èå†…å®¹è¯¦ç»†å†…å®¹url
 	public static ArrayList<Zhihu> GetRecommendations(String content) {
-		// Ô¤¶¨ÒåÒ»¸öArrayListÀ´´æ´¢½á¹û
+		
 		ArrayList<Zhihu> results = new ArrayList<Zhihu>();
-		// ÓÃÀ´Æ¥Åäurl£¬Ò²¾ÍÊÇÎÊÌâµÄÁ´½Ó
-		Pattern pattern = Pattern
-				.compile("<h2>.+?question_link.+?href=\"(.+?)\".+?</h2>");
-		Matcher matcher = pattern.matcher(content);
-		// ÊÇ·ñ´æÔÚÆ¥Åä³É¹¦µÄ¶ÔÏó
-		Boolean isFind = matcher.find();
-		while (isFind) {
-			// ¶¨ÒåÒ»¸öÖªºõ¶ÔÏóÀ´´æ´¢×¥È¡µ½µÄĞÅÏ¢
-			Zhihu zhihuTemp = new Zhihu(matcher.group(1));
-			// Ìí¼Ó³É¹¦Æ¥ÅäµÄ½á¹û
-			results.add(zhihuTemp);
-			// ¼ÌĞø²éÕÒÏÂÒ»¸öÆ¥Åä¶ÔÏó
-			isFind = matcher.find();
+		Document doc = Jsoup.parse(content);
+		Elements items =  doc.getElementsByClass("zm-item");          //æ¨èå†…å®¹å…ƒç´ 
+		for(Element item:items){
+			Element h2TagEle = item.getElementsByTag("h2").first();   //æ¨èå†…å®¹æ ‡é¢˜å…ƒç´ 
+			Element aTagEl = h2TagEle.getElementsByTag("a").first();  //æ¨èå†…å®¹çš„Urlè¶…é“¾æ¥å…ƒç´ 
+			String href = aTagEl.attr("href");                        //æ¨èå†…å®¹url
+			if(href.contains("question")){                            //å»é™¤ä¸è§„èŒƒurl
+				results.add(new Zhihu(href));
+			}
 		}
 		return results;
 	}
