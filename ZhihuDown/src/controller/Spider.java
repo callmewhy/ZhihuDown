@@ -17,30 +17,31 @@ import model.Zhihu;
 
 public class Spider {
 	public static void main(String[] args) {
-		// ¶¨Òå¼´½«·ÃÎÊµÄÁ´½Ó
+
 		String url = "http://www.zhihu.com/explore/recommendations";
-		// ·ÃÎÊÁ´½Ó²¢»ñÈ¡Ò³ÃæÄÚÈİ
+		// è·å–çŸ¥ä¹æ¨èé¦–é¡µ
 		String content = Spider.SendGet(url);
 
-		// »ñÈ¡±à¼­ÍÆ¼ö
+		// è·å–æ¨èå†…å®¹è¯¦ç»†å†…å®¹
 		ArrayList<Zhihu> myZhihu = Spider.GetRecommendations(content);
 
-		// Ğ´Èë±¾µØ
+		// å†™å…¥æ–‡æ¡£
 		for (Zhihu zhihu : myZhihu) {
 			FileReaderWriter.writeIntoFile(zhihu.writeString(),
-					"D:/Öªºõ_±à¼­ÍÆ¼ö.txt", true);
+					"D:/çŸ¥ä¹_ç¼–è¾‘æ¨è", true);
 		}
 	}
-
+	
+	//è·å–æŒ‡å®šUrlé¡µé¢å†…å®¹
+	//é‡‡ç”¨http-clientå’Œhttp-core 4.3 jaråŒ…
 	public static String SendGet(String url) {
-		// ¶¨ÒåÒ»¸ö×Ö·û´®ÓÃÀ´´æ´¢ÍøÒ³ÄÚÈİ
-		String result = "";
+
 		CloseableHttpClient client = HttpClients.createDefault();
 		try{
 			HttpGet request = new HttpGet(url);
 			CloseableHttpResponse resp = client.execute(request);
 			
-			result = EntityUtils.toString(resp.getEntity());
+			String result = EntityUtils.toString(resp.getEntity());
 			
 			return result;
 		}catch(Exception e){
@@ -57,17 +58,17 @@ public class Spider {
 		return null;
 	}
 
-	// »ñÈ¡ËùÓĞµÄ±à¼­ÍÆ¼öµÄÖªºõÄÚÈİ
+	// è·å–æ¨èå†…å®¹è¯¦ç»†å†…å®¹url
 	public static ArrayList<Zhihu> GetRecommendations(String content) {
-		// Ô¤¶¨ÒåÒ»¸öArrayListÀ´´æ´¢½á¹û
+		
 		ArrayList<Zhihu> results = new ArrayList<Zhihu>();
 		Document doc = Jsoup.parse(content);
-		Elements items =  doc.getElementsByClass("zm-item");          //ÍÆ¼öÄÚÈİÔªËØ
+		Elements items =  doc.getElementsByClass("zm-item");          //æ¨èå†…å®¹å…ƒç´ 
 		for(Element item:items){
-			Element h2TagEle = item.getElementsByTag("h2").first();   //Ã¿ÌõÍÆ¼öÄÚÈİ±êÌâÔªËØ
-			Element aTagEl = h2TagEle.getElementsByTag("a").first();  //±êÌâÔªËØÖĞµÄ³¬Á´½Ó
-			String href = aTagEl.attr("href");                        //»ñÈ¡³¬Á´½ÓÍøÖ·
-			if(href.contains("question")){                            //¸ö±ğ³¬Á´½ÓÍøÖ·²»¹æ·¶
+			Element h2TagEle = item.getElementsByTag("h2").first();   //æ¨èå†…å®¹æ ‡é¢˜å…ƒç´ 
+			Element aTagEl = h2TagEle.getElementsByTag("a").first();  //æ¨èå†…å®¹çš„Urlè¶…é“¾æ¥å…ƒç´ 
+			String href = aTagEl.attr("href");                        //æ¨èå†…å®¹url
+			if(href.contains("question")){                            //å»é™¤ä¸è§„èŒƒurl
 				results.add(new Zhihu(href));
 			}
 		}
