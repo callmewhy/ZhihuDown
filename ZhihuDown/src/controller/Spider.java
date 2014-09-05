@@ -28,7 +28,7 @@ public class Spider {
 		// 写入文档
 		for (Zhihu zhihu : myZhihu) {
 			FileReaderWriter.writeIntoFile(zhihu.writeString(),
-					"D:/知乎_编辑推荐", true);
+					"D:/知乎_编辑推荐.txt", true);
 		}
 	}
 	

@@ -41,11 +41,9 @@ public class Zhihu {
 				// 解答
 				Elements ansItems = doc.getElementsByClass("zm-item-answer");
 				for(Element ansItem:ansItems){
-					if(ansItem.hasClass("zm-item-rich-text")){
-						Element textElement = ansItem.getElementsByClass("zm-item-rich-text").first();
-						if(despElement != null){
-							answers.add(textElement.text());
-						}
+					Element textElement = ansItem.getElementsByClass("zm-item-rich-text").first();
+					if(despElement != null){
+						answers.add(textElement.text());
 					}
 				}
 			}else{
